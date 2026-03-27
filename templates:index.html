@@ -1,0 +1,60 @@
+<!doctype html>
+<html>
+  <head>
+    <title>AAPL Option Orderbook</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+      table {
+        border-collapse: collapse;
+        width: 50%;
+        margin: 20px auto;
+      }
+      th,
+      td {
+        border: 1px solid black;
+        padding: 8px;
+        text-align: center;
+      }
+      th {
+        background-color: #f2f2f2;
+      }
+    </style>
+  </head>
+  <body>
+    <h2 style="text-align: center">
+      AAPL Option Orderbook (Expiry: 2026-03-20)
+    </h2>
+    <table id="orderbook">
+      <thead>
+        <tr>
+          <th>Strike</th>
+          <th>Call</th>
+          <th>Put</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <script>
+      function fetchData() {
+        $.getJSON("/data", function (data) {
+          let tbody = $("#orderbook tbody");
+          tbody.empty();
+          data.forEach(function (row) {
+            tbody.append(
+              `<tr>
+                    <td>${row.Strike}</td>
+                    <td style="color:${row.CallColor}">${row.Call}</td>
+                    <td style="color:${row.PutColor}">${row.Put}</td>
+                </tr>`,
+            );
+          });
+        });
+      }
+
+      // Fetch every second
+      setInterval(fetchData, 1000);
+      fetchData(); // initial load
+    </script>
+  </body>
+</html>
