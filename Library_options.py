@@ -35,9 +35,6 @@ load_dotenv()  # Load environment variables from .env file
 API_KEY = os.getenv("ALPACA_API_KEY")
 SECRET_KEY = os.getenv("ALPACA_SECRET_KEY")
 
-# ALPACA_API_KEY = "PKQBAIAQMHCIAFQMQUVD457BK3"
-# ALPACA_SECRET_KEY = "BME8QF8GP6GmWkdJXoCDYkNQHP2fiRSq7yQA71KbqvjS"
-
 # Create client
 client = StockHistoricalDataClient(API_KEY, SECRET_KEY)
 option_client = OptionHistoricalDataClient(API_KEY, SECRET_KEY)
