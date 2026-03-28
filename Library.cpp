@@ -2,18 +2,18 @@
 #include <cmath>
 #include <stdexcept>
 
-namespace py = pybind11;
+// namespace py = pybind11;
 
 // =========================
 // Normal PDF and CDF
 // =========================
-double norm_pdf(float x)
+double norm_pdf(double x)
 {
     static const double INV_SQRT_2PI = 0.3989422804014327;
     return INV_SQRT_2PI * std::exp(-0.5 * x * x);
 }
 
-double norm_cdf(float x)
+double norm_cdf(double x)
 {
     return 0.5 * std::erfc(-x / std::sqrt(2.0));
 }
