@@ -13,6 +13,8 @@ from alpaca.data.historical import StockHistoricalDataClient
 from alpaca.data.requests import StockBarsRequest
 from alpaca.data.timeframe import TimeFrame
 
+import library
+
 load_dotenv()
 
 API_KEY = os.getenv("ALPACA_API_KEY")
@@ -25,20 +27,7 @@ socketio = SocketIO(app, async_mode="threading", cors_allowed_origins="*")
 # ---------- global state ----------
 state_lock = threading.Lock()
 underlying = "MSFT"
-expiry = "2026-03-20"
-
-
-# ---------- Black-Scholes ----------
-def bs_call(S, K, T, r, sigma):
-    d1 = (np.log(S / K) + (r + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
-    d2 = d1 - sigma * np.sqrt(T)
-    return S * norm.cdf(d1) - K * np.exp(-r * T) * norm.cdf(d2)
-
-
-def bs_put(S, K, T, r, sigma):
-    d1 = (np.log(S / K) + (r + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
-    d2 = d1 - sigma * np.sqrt(T)
-    return K * np.exp(-r * T) * norm.cdf(-d2) - S * norm.cdf(-d1)
+expiry = "2026-04-17"
 
 
 # ---------- price ----------
@@ -98,10 +87,10 @@ def build_data(symbol, expiry):
     )
 
     df["call_theo"] = df.apply(
-        lambda r: bs_call(price, r["strike"], T, 0.04, r["iv"]), axis=1
+        lambda r: library.bs_call(price, r["strike"], T, 0.04, r["iv"]), axis=1
     )
     df["put_theo"] = df.apply(
-        lambda r: bs_put(price, r["strike"], T, 0.04, r["iv"]), axis=1
+        lambda r: library.bs_put(price, r["strike"], T, 0.04, r["iv"]), axis=1
     )
 
     vol_data = {"strike": df["strike"].tolist(), "iv": df["iv"].tolist()}

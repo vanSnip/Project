@@ -1,5 +1,6 @@
 # pip install alpaca-py
 
+
 # Standard libraries
 import os
 from datetime import datetime, timedelta
@@ -19,10 +20,11 @@ from alpaca.data.requests import StockBarsRequest
 from alpaca.data.timeframe import TimeFrame
 from scipy.optimize import curve_fit
 
-
 import warnings
 from scipy.optimize import curve_fit, OptimizeWarning
 import numpy as np
+
+import library
 
 # Alpaca historical option data
 from alpaca.data.historical.option import OptionHistoricalDataClient
@@ -230,7 +232,7 @@ def svi_vol(K, S, T, r, params):
     a, b, rho, m, sigma = params
     F = S * np.exp(r * T)
     k = float(np.log(K / F))
-    w = svi_total_variance(k, a, b, rho, m, sigma)
+    w = library.svi_total_variance(k, a, b, rho, m, sigma)
     vol = np.sqrt(w / T)
     return float(vol)
 
@@ -262,9 +264,11 @@ def implied_vol(option_price, S, K, T, r, option_type="call"):
         d1 = (np.log(S / K) + (r + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
         d2 = d1 - sigma * np.sqrt(T)
         if option_type == "call":
-            price = S * norm.cdf(d1) - K * np.exp(-r * T) * norm.cdf(d2)
+            price = S * library.norm_cdf(d1) - K * np.exp(-r * T) * library.norm_cdf(d2)
         else:
-            price = K * np.exp(-r * T) * norm.cdf(-d2) - S * norm.cdf(-d1)
+            price = K * np.exp(-r * T) * library.norm._cdf(-d2) - S * library.norm_cdf(
+                -d1
+            )
         return price - option_price
 
     try:
@@ -286,22 +290,22 @@ def bs_delta_put(S, K, T, r, sigma):
 def bs_theta_call(S, K, T, r, sigma):
     d1 = (np.log(S / K) + (r + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
     d2 = d1 - sigma * np.sqrt(T)
-    term1 = -(S * norm.pdf(d1) * sigma) / (2 * np.sqrt(T))
-    term2 = -r * K * np.exp(-r * T) * norm.cdf(d2)
+    term1 = -(S * library.norm_pdf(d1) * sigma) / (2 * np.sqrt(T))
+    term2 = -r * K * np.exp(-r * T) * library.norm_cdf(d2)
     return (term1 + term2) / 365  # per day
 
 
 def bs_theta_put(S, K, T, r, sigma):
     d1 = (np.log(S / K) + (r + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
     d2 = d1 - sigma * np.sqrt(T)
-    term1 = -(S * norm.pdf(d1) * sigma) / (2 * np.sqrt(T))
-    term2 = r * K * np.exp(-r * T) * norm.cdf(-d2)
+    term1 = -(S * library.norm_pdf(d1) * sigma) / (2 * np.sqrt(T))
+    term2 = r * K * np.exp(-r * T) * library.norm_cdf(-d2)
     return (term1 + term2) / 365  # per day
 
 
 def bs_vega(S, K, T, r, sigma):
     d1 = (np.log(S / K) + (r + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
-    return S * norm.pdf(d1) * np.sqrt(T) / 100  # per 1% change in vol
+    return S * library.norm_pdf(d1) * np.sqrt(T) / 100  # per 1% change in vol
 
 
 def get_option_orderbook_view(
@@ -389,21 +393,23 @@ def get_option_orderbook_view(
 
     # Assign smooth SVI vols to all strikes
     df_calls["call_iv"] = df_calls["strike"].apply(
-        lambda K: svi_vol(K, current_price, T, r, params)
+        lambda K: library.svi_vol(K, current_price, T, r, params)
     )
     df_puts["put_iv"] = df_puts["strike"].apply(
-        lambda K: svi_vol(K, current_price, T, r, params)
+        lambda K: library.svi_vol(K, current_price, T, r, params)
     )
 
     # Compute theoretical prices
     df_calls["call_theo"] = df_calls.apply(
         lambda row: round(
-            bs_call(current_price, row["strike"], T, r, row["call_iv"]), 2
+            library.bs_call(current_price, row["strike"], T, r, row["call_iv"]), 2
         ),
         axis=1,
     )
     df_puts["put_theo"] = df_puts.apply(
-        lambda row: round(bs_put(current_price, row["strike"], T, r, row["put_iv"]), 2),
+        lambda row: round(
+            library.bs_put(current_price, row["strike"], T, r, row["put_iv"]), 2
+        ),
         axis=1,
     )
 
@@ -472,3 +478,6 @@ def get_option_orderbook_view(
     )
     """
     return df_orderbook
+
+
+print("file loaded")
