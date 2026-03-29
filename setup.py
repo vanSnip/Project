@@ -15,3 +15,5 @@ setup(
     name="library",
     ext_modules=ext_modules,
 )
+
+print("set up done")

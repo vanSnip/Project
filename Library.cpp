@@ -154,6 +154,9 @@ PYBIND11_MODULE(library, m)
 {
     m.doc() = "Quant library with Black-Scholes and SVI functions";
 
+    m.def("norm_pdf", &norm_pdf, "Standard normal PDF");
+    m.def("norm_cdf", &norm_cdf, "Standard normal CDF");
+
     m.def("bs_call", &bs_call, "Black-Scholes call price");
     m.def("bs_put", &bs_put, "Black-Scholes put price");
 
