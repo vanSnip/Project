@@ -151,14 +151,6 @@ def get_time_to_expiry(expiry):
     return max((expiry_date - now).days / 365.0, 0.0001)
 
 
-def svi_total_variance(k, a, b, rho, m, sigma):
-    """
-    k: log-moneyness = ln(K / F)
-    Returns total variance w = sigma^2 * T
-    """
-    return a + b * (rho * (k - m) + np.sqrt((k - m) ** 2 + sigma**2))
-
-
 def fit_svi(df, S, T, r):
     """
     Fit SVI parameters to market option IVs.
@@ -210,7 +202,7 @@ def fit_svi(df, S, T, r):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", OptimizeWarning)
             params, _ = curve_fit(
-                svi_total_variance,
+                library.svi_total_variance,
                 k,
                 w,
                 p0=initial_guess,
@@ -222,30 +214,7 @@ def fit_svi(df, S, T, r):
         return None
 
 
-def svi_vol(K, S, T, r, params):
-    if params is None:
-        return 0.2  # fallback
-
-    a, b, rho, m, sigma = params
-    F = S * np.exp(r * T)
-    k = float(np.log(K / F))
-    w = library.svi_total_variance(k, a, b, rho, m, sigma)
-    vol = np.sqrt(w / T)
-    return float(vol)
-
-
 # Black-Scholes formulas for call and put theoretical prices
-def bs_call(S, K, T, r, sigma):
-    d1 = (np.log(S / K) + (r + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
-    d2 = d1 - sigma * np.sqrt(T)
-    return S * norm.cdf(d1) - K * np.exp(-r * T) * norm.cdf(d2)
-
-
-def bs_put(S, K, T, r, sigma):
-    d1 = (np.log(S / K) + (r + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
-    d2 = d1 - sigma * np.sqrt(T)
-    return K * np.exp(-r * T) * norm.cdf(-d2) - S * norm.cdf(-d1)
-
 
 # -- final option orderbook view function --
 from scipy.optimize import brentq
@@ -272,37 +241,6 @@ def implied_vol(option_price, S, K, T, r, option_type="call"):
         return float(brentq(objective, 0.0001, 5.0))
     except:
         return np.nan
-
-
-def bs_delta_call(S, K, T, r, sigma):
-    d1 = (np.log(S / K) + (r + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
-    return norm.cdf(d1)
-
-
-def bs_delta_put(S, K, T, r, sigma):
-    d1 = (np.log(S / K) + (r + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
-    return norm.cdf(d1) - 1
-
-
-def bs_theta_call(S, K, T, r, sigma):
-    d1 = (np.log(S / K) + (r + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
-    d2 = d1 - sigma * np.sqrt(T)
-    term1 = -(S * library.norm_pdf(d1) * sigma) / (2 * np.sqrt(T))
-    term2 = -r * K * np.exp(-r * T) * library.norm_cdf(d2)
-    return (term1 + term2) / 365  # per day
-
-
-def bs_theta_put(S, K, T, r, sigma):
-    d1 = (np.log(S / K) + (r + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
-    d2 = d1 - sigma * np.sqrt(T)
-    term1 = -(S * library.norm_pdf(d1) * sigma) / (2 * np.sqrt(T))
-    term2 = r * K * np.exp(-r * T) * library.norm_cdf(-d2)
-    return (term1 + term2) / 365  # per day
-
-
-def bs_vega(S, K, T, r, sigma):
-    d1 = (np.log(S / K) + (r + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
-    return S * library.norm_pdf(d1) * np.sqrt(T) / 100  # per 1% change in vol
 
 
 def get_option_orderbook_view(
