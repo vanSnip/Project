@@ -1,8 +1,10 @@
 #include <pybind11/pybind11.h>
+#include <pybind11/numpy.h>
 #include <cmath>
 #include <stdexcept>
+#include <vector>
 
-// namespace py = pybind11;
+namespace py = pybind11;
 
 // =========================
 // Normal PDF and CDF
@@ -123,17 +125,42 @@ double bs_vega(double S, double K, double T, double r, double sigma)
 // =========================
 // SVI total variance
 // =========================
-double svi_total_variance(double k, double a, double b, double rho, double m, double sigma)
-{
-    // k is moneyness = log(K/F)
-    // sigma is not vol, but a shape parameter (vol of vol)
-    const double diff = k - m;
-    return a + b * (rho * diff + std::sqrt(diff * diff + sigma * sigma));
-}
 
 // =========================
 // SVI implied vol from strike
 // =========================
+
+double svi_total_variance_scalar(double k, double a, double b, double rho, double m, double sigma)
+{
+    double diff = k - m;
+    return a + b * (rho * diff + std::sqrt(diff * diff + sigma * sigma));
+}
+
+// =========================
+// Vectorized SVI for NumPy
+// =========================
+py::array_t<double> svi_total_variance(py::array_t<double> k_array,
+                                       double a, double b, double rho, double m, double sigma)
+{
+    auto buf = k_array.request();
+    if (buf.ndim != 1)
+        throw std::runtime_error("Input must be a 1D array");
+
+    size_t n = buf.shape[0];
+    double *ptr = static_cast<double *>(buf.ptr);
+
+    py::array_t<double> result(n);
+    auto res_buf = result.request();
+    double *res_ptr = static_cast<double *>(res_buf.ptr);
+
+    for (size_t i = 0; i < n; ++i)
+    {
+        double diff = ptr[i] - m;
+        res_ptr[i] = a + b * (rho * diff + std::sqrt(diff * diff + sigma * sigma));
+    }
+    return result;
+}
+
 double svi_vol(double K, double S, double T, double r,
                double a, double b, double rho, double m, double sigma)
 {
@@ -142,7 +169,7 @@ double svi_vol(double K, double S, double T, double r,
 
     double F = S * std::exp(r * T);
     double k = std::log(K / F);
-    double w = svi_total_variance(k, a, b, rho, m, sigma);
+    double w = svi_total_variance_scalar(k, a, b, rho, m, sigma);
 
     if (w <= 0.0)
         throw std::runtime_error("SVI total variance is non-positive.");
@@ -173,6 +200,6 @@ PYBIND11_MODULE(library, m)
 
     m.def("svi_total_variance", &svi_total_variance, "SVI total variance");
     m.def("svi_vol", &svi_vol, "SVI implied vol from strike");
-}
 
-// c++ -O3 -Wall -shared -std=c++17 -fPIC $(python3 -m pybind11 --includes) library.cpp -o library$(python3-config --extension-suffix)
+    m.def("svi_total_variance_scalar", &svi_total_variance_scalar, "SVI total variance for scalar k");
+}
