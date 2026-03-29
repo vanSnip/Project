@@ -128,7 +128,7 @@ double svi_total_variance(double k, double a, double b, double rho, double m, do
     // k is moneyness = log(K/F)
     // sigma is not vol, but a shape parameter (vol of vol)
     const double diff = k - m;
-    return a + b * (rho * x + std::sqrt(diff * diff + sigma * sigma));
+    return a + b * (rho * diff + std::sqrt(diff * diff + sigma * sigma));
 }
 
 // =========================
@@ -174,3 +174,5 @@ PYBIND11_MODULE(library, m)
     m.def("svi_total_variance", &svi_total_variance, "SVI total variance");
     m.def("svi_vol", &svi_vol, "SVI implied vol from strike");
 }
+
+// c++ -O3 -Wall -shared -std=c++17 -fPIC $(python3 -m pybind11 --includes) library.cpp -o library$(python3-config --extension-suffix)

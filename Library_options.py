@@ -192,7 +192,8 @@ def fit_svi(df, S, T, r):
     # Initial guess: anchor at ATM
     atm_idx = np.argmin(np.abs(k))
     atm_w = w[atm_idx]
-    initial_guess = [atm_w, 0.2, -0.3, 0.0, 0.2]  # a, b, rho, m, sigma
+    b_guess = (max(w) - min(w)) / (max(k) - min(k))  # slope
+    initial_guess = [atm_w, b_guess, -0.3, 0.0, 0.2]
 
     # Bounds for stability
     lower_bounds = [0.0, 0.0, -0.999, min(k) - 1, 0.001]
@@ -209,8 +210,10 @@ def fit_svi(df, S, T, r):
                 bounds=(lower_bounds, upper_bounds),
                 maxfev=500000,
             )
+        print("SVI fitted:", params)
         return params
-    except:
+    except Exception as e:
+        print("SVI fit failed:", e)
         return None
 
 
@@ -304,8 +307,8 @@ def get_option_orderbook_view(
     calls_otm = df_calls[df_calls["strike"] >= current_price].copy()
     puts_otm = df_puts[df_puts["strike"] <= current_price].copy()
 
-    calls_otm = calls_otm[calls_otm["mid"] > 0.05]
-    puts_otm = puts_otm[puts_otm["mid"] > 0.05]
+    calls_otm = calls_otm[calls_otm["mid"] > 0.01]
+    puts_otm = puts_otm[puts_otm["mid"] > 0.01]
 
     # Compute market IVs
     calls_otm["iv"] = calls_otm.apply(
@@ -322,17 +325,46 @@ def get_option_orderbook_view(
         [calls_otm[["strike", "iv"]], puts_otm[["strike", "iv"]]]
     ).dropna()
     df_vol = df_vol.sort_values("strike").reset_index(drop=True)
+    if len(df_vol) < 5:
+        print("Not enough data for SVI fitting, using flat IV")
 
+    print(df_vol)
+    print("Trying to fit SVI with", len(df_vol), "points")
     #  Fit SVI
     params = fit_svi(df_vol, current_price, T, r)
 
-    # Assign smooth SVI vols to all strikes
-    df_calls["call_iv"] = df_calls["strike"].apply(
-        lambda K: library.svi_vol(K, current_price, T, r, params)
-    )
-    df_puts["put_iv"] = df_puts["strike"].apply(
-        lambda K: library.svi_vol(K, current_price, T, r, params)
-    )
+    if params is None:
+        # fallback: use flat IV from ATM
+        atm_iv = df_vol["iv"].iloc[len(df_vol) // 2]  # midpoint
+        df_calls["call_iv"] = atm_iv
+        df_puts["put_iv"] = atm_iv
+    else:
+        df_calls["call_iv"] = df_calls["strike"].apply(
+            lambda K: library.svi_vol(
+                float(K),
+                float(current_price),
+                float(T),
+                float(r),
+                float(params[0]),
+                float(params[1]),
+                float(params[2]),
+                float(params[3]),
+                float(params[4]),
+            )
+        )
+        df_puts["put_iv"] = df_puts["strike"].apply(
+            lambda K: library.svi_vol(
+                float(K),
+                float(current_price),
+                float(T),
+                float(r),
+                float(params[0]),
+                float(params[1]),
+                float(params[2]),
+                float(params[3]),
+                float(params[4]),
+            )
+        )
 
     # Compute theoretical prices
     df_calls["call_theo"] = df_calls.apply(
