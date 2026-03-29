@@ -125,7 +125,10 @@ double bs_vega(double S, double K, double T, double r, double sigma)
 // =========================
 double svi_total_variance(double k, double a, double b, double rho, double m, double sigma)
 {
-    return a + b * (rho * (k - m) + std::sqrt((k - m) * (k - m) + sigma * sigma));
+    // k is moneyness = log(K/F)
+    // sigma is not vol, but a shape parameter (vol of vol)
+    const double diff = k - m;
+    return a + b * (rho * x + std::sqrt(diff * diff + sigma * sigma));
 }
 
 // =========================
