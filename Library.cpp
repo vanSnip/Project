@@ -20,6 +20,13 @@ double norm_cdf(double x)
     return 0.5 * std::erfc(-x / std::sqrt(2.0));
 }
 
+double forward_price(double S, double r, double T)
+{
+    if (S <= 0 || T <= 0)
+        throw std::invalid_argument("S and T must be positive.");
+    return S * std::exp(r * T);
+}
+
 // =========================
 // Black-Scholes call price
 // =========================

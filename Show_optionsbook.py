@@ -7,12 +7,12 @@ import os
 from dotenv import load_dotenv
 import webbrowser
 import threading
-
 from Library_options import get_option_orderbook_view
 from alpaca.data.historical import StockHistoricalDataClient
 from alpaca.data.requests import StockBarsRequest
 from alpaca.data.timeframe import TimeFrame
 
+# import own library (C++ pybind11 module)
 import library
 
 load_dotenv()
@@ -28,9 +28,10 @@ socketio = SocketIO(app, async_mode="threading", cors_allowed_origins="*")
 state_lock = threading.Lock()
 underlying = "MSFT"
 expiry = "2026-04-17"
+rf = 0.02
 
 
-# ---------- price ----------
+# ---------- price through alpaca ----------
 def get_latest_price(symbol):
     try:
         end_date = datetime.utcnow() - timedelta(minutes=15)
@@ -56,9 +57,11 @@ def get_latest_price(symbol):
 # ---------- build dataframe ----------
 def build_data(symbol, expiry):
     price = get_latest_price(symbol) or 265
+    # example forward price for testing
+
     rounded = 5 * round(price / 5)
 
-    df = get_option_orderbook_view(symbol, expiry, rounded, half=10, step_size=5)
+    df = get_option_orderbook_view(symbol, expiry, price, half=10, step_size=5)
 
     fill_cols = [
         "call_bid_qty",
@@ -87,10 +90,10 @@ def build_data(symbol, expiry):
     )
 
     df["call_theo"] = df.apply(
-        lambda r: library.bs_call(price, r["strike"], T, 0.04, r["iv"]), axis=1
+        lambda r: library.bs_call(price, r["strike"], T, rf, r["iv"]), axis=1
     )
     df["put_theo"] = df.apply(
-        lambda r: library.bs_put(price, r["strike"], T, 0.04, r["iv"]), axis=1
+        lambda r: library.bs_put(price, r["strike"], T, rf, r["iv"]), axis=1
     )
 
     vol_data = {"strike": df["strike"].tolist(), "iv": df["iv"].tolist()}
