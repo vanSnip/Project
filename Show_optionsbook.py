@@ -26,8 +26,8 @@ socketio = SocketIO(app, async_mode="threading", cors_allowed_origins="*")
 
 # ---------- global state ----------
 state_lock = threading.Lock()
-underlying = "MSFT"
-expiry = "2026-04-17"
+underlying = "AAPL"
+expiry = "2026-05-15"
 rf = 0.02
 
 
