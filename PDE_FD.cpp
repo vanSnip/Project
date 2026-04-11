@@ -343,7 +343,7 @@ double american_fd_put(
 // IMPORTANT: module name must match output filename stem
 // e.g. if output is library.cpython-...so, module name = library
 // ============================================================
-PYBIND11_MODULE(library_2, m)
+PYBIND11_MODULE(USoptions_lib, m)
 {
     m.doc() = "Option pricing library: BS + American FD (Crank-Nicolson + PSOR)";
 
