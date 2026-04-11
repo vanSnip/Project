@@ -67,10 +67,10 @@ double american_fd_price(
     double sigma,
     double q,
     bool is_call,
-    int M = 400,            // space steps
-    int N = 400,            // time steps
-    double Smax_mult = 4.0, // Smax = max(S0, K) * Smax_mult
-    double omega = 1.4,     // PSOR relaxation
+    int M = 400,             // space steps
+    int N = 400,             // time steps
+    double Smax_mult = 10.0, // Smax = max(S0, K) * Smax_mult
+    double omega = 1.4,      // PSOR relaxation
     double tol = 1e-8,
     int max_iter = 10000)
 {
