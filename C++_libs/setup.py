@@ -7,7 +7,7 @@ CPP = BASE / "cpp_files"
 
 ext_modules = [
     Extension(
-        "library",
+        "Equity_options_SVI_lib",
         [str(CPP / "Equity_options_SVI_lib.cpp")],
         include_dirs=[pybind11.get_include()],
         language="c++",

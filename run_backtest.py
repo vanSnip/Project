@@ -1,5 +1,4 @@
 # run_backtest.py
-
 import argparse
 import backtest_engine
 from strategies import STRATEGIES

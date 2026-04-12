@@ -187,7 +187,7 @@ double svi_vol(double K, double S, double T, double r,
 // =========================
 // Module
 // =========================
-PYBIND11_MODULE(library, m)
+PYBIND11_MODULE(Equity_options_SVI_lib, m)
 {
     m.doc() = "Quant library with Black-Scholes and SVI functions";
 

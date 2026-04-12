@@ -7,9 +7,9 @@ import numpy as np
 # from Options_orderbook.Library_options import *  # pure Python version
 
 # Importing all the homegrown Python functions for testing (uncomment if you want to test the pure Python version)
-import library  # C++ pybind11 module
-import USoptions_lib  # C++ pybind11 module (alternative name)
-import FX_options_SABR_lib as sabr  # C++ pybind11 module for FX options (SABR model)
+import Equity_options_SVI_lib  # C++ pybind11 module
+import USoptions_lib as US_opt  # C++ pybind11 module (alternative name)
+import FX_options_SABR_lib as FXO  # C++ pybind11 module for FX options (SABR model)
 
 # Same inputs for both
 S = 100.0
@@ -26,11 +26,11 @@ BF = 0.005
 
 beta = 1.0
 
-alpha, rho, nu = sabr.sabr_calibrate(S, r, T, sigma_atm, RR, BF, beta)
+alpha, rho, nu = FXO.sabr_calibrate(S, r, T, sigma_atm, RR, BF, beta)
 # strikes grid
 Ks = np.linspace(0.8, 1.4, 50)
 F = S * np.exp(r * T)  # forward price
-vols = np.array([sabr.sabr_vol(F, k, T, alpha, 1.0, rho, nu) for k in Ks])
+vols = np.array([FXO.sabr_vol(F, k, T, alpha, 1.0, rho, nu) for k in Ks])
 
 print(alpha, rho, nu)
 
