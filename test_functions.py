@@ -26,18 +26,15 @@ beta = 1.0
 
 alpha, rho, nu = sabr.sabr_calibrate(S, r, T, sigma_atm, RR, BF, beta)
 # strikes grid
-K = np.linspace(0.8, 1.4, 50)
+Ks = np.linspace(0.8, 1.4, 50)
 F = S * np.exp(r * T)  # forward price
-vols = np.array([sabr.sabr_vol(F, k, T, alpha, 1.0, rho, nu) for k in K])
+vols = np.array([sabr.sabr_vol(F, k, T, alpha, 1.0, rho, nu) for k in Ks])
 
 print(alpha, rho, nu)
 
-""" 
-
 print(vols)
+print("options prices:")
 print(library.bs_call(S, K, T, r, sigma))
 print(USoptions_lib.american_fd_call(S, K, T, r, sigma))
 print(library.bs_put(S, K, T, r, sigma))
 print(USoptions_lib.american_fd_put(S, K, T, r, sigma))
-
-"""
