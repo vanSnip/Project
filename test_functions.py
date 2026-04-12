@@ -3,12 +3,17 @@
 from matplotlib.style import library
 import timeit
 import numpy as np
+import sys
+from pathlib import Path
+
+BASE = Path(__file__).resolve().parent
+sys.path.append(str(BASE / "C++_libs"))
 
 # from Options_orderbook.Library_options import *  # pure Python version
 
 # Importing all the homegrown Python functions for testing (uncomment if you want to test the pure Python version)
-import Equity_options_SVI_lib  # C++ pybind11 module
-import USoptions_lib as US_opt  # C++ pybind11 module (alternative name)
+import Equity_options_SVI_lib as SVI  # C++ pybind11 module
+import USoptions_lib as PDE_FD  # C++ pybind11 module (alternative name)
 import FX_options_SABR_lib as FXO  # C++ pybind11 module for FX options (SABR model)
 
 # Same inputs for both
@@ -36,7 +41,7 @@ print(alpha, rho, nu)
 
 print(vols)
 print("options prices:")
-print(library.bs_call(S, K, T, r, sigma))
-print(USoptions_lib.american_fd_call(S, K, T, r, sigma))
-print(library.bs_put(S, K, T, r, sigma))
-print(USoptions_lib.american_fd_put(S, K, T, r, sigma))
+print(SVI.bs_call(S, K, T, r, sigma))
+print(PDE_FD.american_fd_call(S, K, T, r, sigma))
+print(SVI.bs_put(S, K, T, r, sigma))
+print(PDE_FD.american_fd_put(S, K, T, r, sigma))
