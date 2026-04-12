@@ -1,25 +1,28 @@
 from setuptools import setup, Extension
+from pathlib import Path
 import pybind11
-import sys
+
+BASE = Path(__file__).parent
+CPP = BASE / "cpp_files"
 
 ext_modules = [
     Extension(
         "library",
-        ["Equity_options_SVI_lib.cpp"],
+        [str(CPP / "Equity_options_SVI_lib.cpp")],
         include_dirs=[pybind11.get_include()],
         language="c++",
         extra_compile_args=["-std=c++17"],
     ),
     Extension(
         "USoptions_lib",
-        ["PDE_FD.cpp"],
+        [str(CPP / "PDE_FD.cpp")],
         include_dirs=[pybind11.get_include()],
         language="c++",
         extra_compile_args=["-std=c++17"],
     ),
     Extension(
         "FX_options_SABR_lib",
-        ["SABR_model.cpp"],
+        [str(CPP / "FX_options_SABR_lib.cpp")],
         include_dirs=[pybind11.get_include()],
         language="c++",
         extra_compile_args=["-std=c++17"],
@@ -27,7 +30,7 @@ ext_modules = [
 ]
 
 setup(
-    name="quant_cpp_libs",
+    name="quant_cpp",
     ext_modules=ext_modules,
 )
 
@@ -35,7 +38,3 @@ print("set up done")
 # To build the C++ extensions, run the following command in the terminal:
 # Bash:
 # python setup.py build_ext --inplace
-
-# To remove all the built extensions, you can delete the generated .so files in the current directory.
-# Bash:
-# rm *.so
