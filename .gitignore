@@ -1,3 +1,4 @@
 .env
 ignore/
 test_functions.py
+Trading_algo_test/
