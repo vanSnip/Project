@@ -1,3 +1,5 @@
+# pip install -e C++_libs
+# 3.11.5 base
 from matplotlib.style import library
 import timeit
 import numpy as np
