@@ -11,9 +11,17 @@ from Library_options import get_option_orderbook_view
 from alpaca.data.historical import StockHistoricalDataClient
 from alpaca.data.requests import StockBarsRequest
 from alpaca.data.timeframe import TimeFrame
+import sys
+from pathlib import Path
 
 # import own library (C++ pybind11 module)
-import library
+BASE = Path(__file__).resolve().parent
+sys.path.append(str(BASE / "C++_libs"))
+
+# from Options_orderbook.Library_options import *  # pure Python version
+
+# Importing all the homegrown Python functions for testing (uncomment if you want to test the pure Python version)
+import Equity_options_SVI_lib as library
 
 load_dotenv()
 

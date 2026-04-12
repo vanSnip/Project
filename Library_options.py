@@ -24,7 +24,17 @@ import warnings
 from scipy.optimize import curve_fit, OptimizeWarning
 import numpy as np
 
-import library
+import sys
+from pathlib import Path
+
+# import own library (C++ pybind11 module)
+BASE = Path(__file__).resolve().parent
+sys.path.append(str(BASE / "C++_libs"))
+
+# from Options_orderbook.Library_options import *  # pure Python version
+
+# Importing all the homegrown Python functions for testing (uncomment if you want to test the pure Python version)
+import Equity_options_SVI_lib as library
 
 # Alpaca historical option data
 from alpaca.data.historical.option import OptionHistoricalDataClient
