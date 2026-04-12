@@ -103,20 +103,25 @@ double strike_from_delta(double S, double T, double r,
                          double sigma, double target_delta,
                          bool is_call)
 {
-    double K = S;
+    double F = S * std::exp(r * T);
+    double K = F;
 
-    for (int i = 0; i < 10; ++i)
+    for (int i = 0; i < 20; ++i)
     {
-        double delta = is_call ? bs_delta_call(S, K, T, r, sigma) : bs_delta_put(S, K, T, r, sigma);
+        double vol_sqrtT = sigma * std::sqrt(T);
+        double d1 = (std::log(F / K) + 0.5 * sigma * sigma * T) / vol_sqrtT;
 
-        double vega = bs_vega(S, K, T, r, sigma);
+        double Nd1 = norm_cdf(d1);
+        double nd1 = norm_pdf(d1);
+
+        double delta = is_call ? Nd1 : (Nd1 - 1.0);
 
         double diff = delta - target_delta;
-        if (std::abs(diff) < 1e-8)
+        if (std::abs(diff) < 1e-10)
             break;
 
-        // dDelta/dK approx
-        double dDelta_dK = -vega / (S * sigma);
+        // Correct derivative ∂Δ/∂K
+        double dDelta_dK = -nd1 / (K * vol_sqrtT);
 
         K -= diff / dDelta_dK;
     }
