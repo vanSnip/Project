@@ -35,6 +35,7 @@ sys.path.append(str(BASE / "C++_libs"))
 
 # Importing all the homegrown Python functions for testing (uncomment if you want to test the pure Python version)
 import Equity_options_SVI_lib as library
+import USoptions_lib as US_opt  # C++ pybind11 module (alternative name)
 
 # Alpaca historical option data
 from alpaca.data.historical.option import OptionHistoricalDataClient
@@ -262,7 +263,7 @@ def get_option_orderbook_view(
     current_price,
     half=8,
     step_size=5,
-    r=0.04,
+    r=0.02,
 ):
     """
     Generate a full option orderbook with market-derived IVs and SVI-smoothed vols.
@@ -385,7 +386,7 @@ def get_option_orderbook_view(
     )
     df_puts["put_theo"] = df_puts.apply(
         lambda row: round(
-            library.bs_put(current_price, row["strike"], T, r, row["put_iv"]), 2
+            US_opt.bs_put(current_price, row["strike"], T, r, row["put_iv"]), 2
         ),
         axis=1,
     )

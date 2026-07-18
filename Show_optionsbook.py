@@ -22,6 +22,7 @@ sys.path.append(str(BASE / "C++_libs"))
 
 # Importing all the homegrown Python functions for testing (uncomment if you want to test the pure Python version)
 import Equity_options_SVI_lib as library
+import USoptions_lib as US_opt  # C++ pybind11 module (alternative name)
 
 load_dotenv()
 
